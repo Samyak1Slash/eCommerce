@@ -1,5 +1,3 @@
-
-
 from flask import Flask
 from flask import render_template
 from flask import request
@@ -7,17 +5,16 @@ import sqlite3
 
 app = Flask(__name__)
 
-# Home Page route
 @app.route("/")
 def home():
     return render_template("home.html")
 
-# Route to form used to add a new student to the database
+# Route to form used to add a new product to the database
 @app.route("/enternew")
 def enternew():
-    return render_template("student.html")
+    return render_template("index.html")
 
-# Route to add a new record (INSERT) student data to the database
+# Route to add a new record (INSERT) product data to the database
 @app.route("/addrec", methods = ['POST', 'GET'])
 def addrec():
     # Data will be available from POST submitted by the form
@@ -50,28 +47,28 @@ def addproduct():
 
 
 
-@app.route('/list')
-def list():
-    # Connect to the SQLite3 datatabase and 
-    # SELECT rowid and all Rows from the students table.
-    con = sqlite3.connect("database.db")
-    con.row_factory = sqlite3.Row
+# @app.route('/list')
+# def list():
+#     # Connect to the SQLite3 datatabase and 
+#     # SELECT rowid and all Rows from the products table.
+#     con = sqlite3.connect("database.db")
+#     con.row_factory = sqlite3.Row
 
-    cur = con.cursor()
-    cur.execute("SELECT rowid, * FROM products")
+#     cur = con.cursor()
+#     cur.execute("SELECT rowid, * FROM products")
 
-    rows = cur.fetchall()
-    total_price = calculate_total_price()
-    con.close()
-    # Send the results of the SELECT to the list.html page
-    return render_template("list.html",rows=rows,total_price=total_price)
-def calculate_total_price():
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    cur.execute("SELECT SUM(product_price) FROM Products")
-    total_price = cur.fetchone()[0]  # Fetch the total price
-    conn.close()
-    return total_price
+#     rows = cur.fetchall()
+#     total_price = calculate_total_price()
+#     con.close()
+#     # Send the results of the SELECT to the list.html page
+#     return render_template("list.html",rows=rows,total_price=total_price)
+# def calculate_total_price():
+#     conn = sqlite3.connect('database.db')
+#     cur = conn.cursor()
+#     cur.execute("SELECT SUM(product_price) FROM Products")
+#     total_price = cur.fetchone()[0]  # Fetch the total price
+#     conn.close()
+#     return total_price
 
 # Route that will SELECT a specific row in the database then load an Edit form 
 @app.route("/edit", methods=['POST','GET'])
@@ -105,8 +102,6 @@ def editrec():
             rowid = request.form['rowid']
             nm = request.form['nm']
             prc = request.form['prc']
-            # city = request.form['city']
-            # zip = request.form['zip']
 
             # UPDATE a specific record in the database based on the rowid
             with sqlite3.connect('database.db') as con:
@@ -121,10 +116,8 @@ def editrec():
 
         finally:
             con.close()
-            # Send the transaction message to result.html
             return render_template('result.html',msg=msg)
 
-# Route used to DELETE a specific record in the database    
 @app.route("/delete", methods=['POST','GET'])
 def delete():
     if request.method == 'POST':
@@ -190,6 +183,48 @@ def add_to_cart():
                 
     
     return 'Item added to cart', 200
+
+
+
+@app.route('/checkout', methods=['POST'])
+def checkout():
+    rows = get_all_products()
+    total_price = calculate_total_price() 
+    delete_all_products()  # Delete all products after checkout
+    if rows:
+        return render_template("checkout.html", rows=rows, total_price=total_price)
+    else:
+        return render_template('no_product_found.html')
+
+def get_all_products():
+    con = sqlite3.connect("database.db")
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    cur.execute("SELECT rowid, * FROM products")
+    rows = cur.fetchall()
+    con.close()
+    return rows
+
+def calculate_total_price():
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute("SELECT SUM(product_price) FROM Products")
+    total_price = cur.fetchone()[0] or 0  # Fetch the total price or set to 0 if NULL
+    conn.close()
+    return total_price
+
+def delete_all_products():
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute("DELETE FROM Products")
+    conn.commit()
+    conn.close()
+
+@app.route('/list')
+def list():
+    rows = get_all_products()
+    total_price = calculate_total_price()
+    return render_template("list.html", rows=rows, total_price=total_price)
 
 
 

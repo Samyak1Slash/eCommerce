@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title %}
+List All Products
+{% endblock %}
+{% block content %}
+        <table border="1px">
+            <thead>
+                <td><strong>Product ID</strong></td>
+                <td><strong>Product_Name</strong></td>
+                <td><strong>Price</strong></td>
+                <td><strong>Remove Product</strong></td>
+            </thead>
+
+            {% for row in rows %}
+            <tr>
+                <td>{{ row["rowid"] }}</td>
+                <td>{{ row["product_name"] }}</td>
+                <td> {{ row["product_price"]}}</td>
+                <td><form onsubmit="return confirm('Are you sure you want to DELETE this Product from the Cart?');" action="{{url_for('delete')}}" method="POST"><input type="hidden" name="id" value="{{ row['rowid'] }}"><input type="submit" value="Delete"></form> </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div>
+            <strong>Total Price of all Products: ${{ total_price }}</strong>
+        </div>
+        
+        <form action="{{ url_for('checkout') }}" method="POST">
+            <input type="submit" value="Checkout">
+        </form>
+
+        
+
+{% endblock %}

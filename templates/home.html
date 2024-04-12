@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block title %}
+Student Flask App with CRUD
+{% endblock %}
+{% block content %}
+<h1>Welcome to our Ecommerce Website!</h1>
+<div class="Choice">
+    <a href="{{ url_for('enternew') }}" class="navbar-item">Enter As User</a>
+    <a href="{{ url_for('addproduct') }}" class="navbar-item">Enter As Provider</a>
+</div>
+{% endblock %}
